@@ -42,14 +42,27 @@ export class TaskCard extends Component{
 
     async deleteRelation(contactId){
     await axios.delete(`${this.url}/relations/${this.props.task.id}/${contactId}`)
-        .then(responce=>console.log(responce))
+        .then(responce=>{
+            this.setState({
+                ...this.state,
+                relation: this.state.relation.filter(r => r.contactId !== contactId)
+            })
+
+            console.log(responce)
+        })
         .catch(e=>console.log(e))
     }
 
     async createRelation(contactId){
         await axios.post(`${this.url}/relations`,
             {taskId:this.props.task.id,contactId:contactId})
-            .then(responce=>console.log(responce))
+            .then(responce=>{
+                this.state.relation.push({
+                    taskId: this.props.task.id,
+                    contactId: contactId
+                })
+                console.log(responce)
+            })
             .catch(e=>console.log(e))
     }
 
@@ -90,8 +103,8 @@ export class TaskCard extends Component{
                         <Modal.Title>Task menu</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Row>
-                            <Form>
+                        <Form>
+                            <Row>
                                 <Col>
                                     <Form.Group>
                                         <Form.Label>Title</Form.Label>
@@ -119,32 +132,21 @@ export class TaskCard extends Component{
                                                     defaultChecked={this.inRelation(c.id)}
                                                     type="checkbox"
                                                     label={c.name}
-                                                    onChange={e => this.setState(() => {
-                                                        let flag = false
-                                                        this.state.relation.map(r => {
-                                                            if (r.contactId === c.id)
-                                                                flag = true
-                                                        })
-                                                        console.log(flag)
-                                                        if (flag){
+                                                    onChange={()=>{
+                                                        if(this.inRelation(c.id)){
                                                             this.deleteRelation(c.id)
-                                                            return this.state.relation.filter(r => r.contactId !== c.id)
                                                         }
                                                         else{
                                                             this.createRelation(c.id)
-                                                            return this.state.relation.push({
-                                                                taskId: this.props.task.id,
-                                                                contactId: c.id
-                                                            })
                                                         }
-                                                    })}
+                                                    }}
                                                 />
                                             </Form.Group>
                                         ))}
                                     </Container>
                                 </Col>
-                            </Form>
-                        </Row>
+                            </Row>
+                        </Form>
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={this.handleClose}>

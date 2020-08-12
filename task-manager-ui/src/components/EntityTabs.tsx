@@ -123,71 +123,67 @@ export class EntityTabs extends Component {
 
     deleteContact = (id) => {
         axios.delete(`${this.url}/contacts/${id}`)
-            .then(response => console.log(`delete contact id = ${id}`))
+            .then(response => {
+                this.setState({
+                    ...this.state,
+                    contacts: this.state.contacts.filter(c => c.id !== id)
+                })
+            })
             .catch(e => console.log(e))
 
-        this.setState({
-            ...this.state,
-            contacts: this.state.contacts.filter(c => c.id !== id)
-        })
+        console.log(`delete contact id = ${id}`)
     }
 
     updateContact = (contact) => {
         console.log(contact)
 
         axios.put(`${this.url}/contacts/${contact.id}`, contact)
-            .then(responce => console.log(`update contact id = ${contact.id}`))
+            .then(responce => {
+                const i = this.state.contacts.findIndex(value => value.id === contact.id)
+                let newContacts = this.state.contacts
+                newContacts[i]=contact
+
+                this.setState({
+                    ...this.state,
+                    contacts: newContacts
+                })
+
+                console.log(`update contact id = ${contact.id}`)
+            })
             .catch(e => console.log(e))
 
-        /*const i = this.state.contacts.findIndex(value => value.id === contact.id)
-
-        this.state.contacts[i] = contact*/
-
-        this.setState(
-            {
-            ...this.state,
-            contacts: this.state.contacts.map(c => {
-                if(c.id===contact.id){
-                    c.name=contact.name
-                    c.number=contact.number
-                }
-                return c
-            })
-        })
         console.log('state', this.state.contacts)
     }
 
     deleteTask = (id) => {
         axios.delete(`${this.url}/tasks/${id}`)
-            .then(response => console.log(`delete task id = ${id}`))
+            .then(response => {
+                this.setState({
+                    ...this.state,
+                    tasks: this.state.tasks.filter(t => t.id !== id)
+                })
+                console.log(`delete task id = ${id}`)
+            })
             .catch(e => console.log(e))
-
-        this.setState({
-            ...this.state,
-            tasks: this.state.tasks.filter(t => t.id !== id)
-        })
     }
 
     updateTask = (task) => {
         console.log(task)
 
-        //console.log('state-before', this.state.tasks)
+        console.log('state-before', this.state.tasks)
 
         axios.put(`${this.url}/tasks/${task.id}`, task)
-            .then(responce => console.log(`update task id = ${task.id}`))
-            .catch(e => console.log(e))
-        /*
+            .then(responce => {
+                const i = this.state.tasks.findIndex(value=> value.id===task.id)
+                let newTasks = this.state.tasks
+                newTasks[i]=task
                 this.setState({
                     ...this.state,
-                    tasks: this.state.tasks.map(t => {
-                        if(t.id===task.id){
-                            t.title=task.title
-                            t.description=task.description
-                            t.isComplete=task.isComplete
-                        }
-                    })
+                    tasks: newTasks
                 })
-                console.log('state-after', this.state.tasks)*/
+                console.log(`update task id = ${task.id}`)
+            })
+            .catch(e => console.log(e))
     }
 
     completeTask = (task) => {
