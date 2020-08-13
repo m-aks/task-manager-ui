@@ -3,19 +3,53 @@ import {Tabs, Tab, Accordion, Spinner, Card, Button} from 'react-bootstrap'
 import {ContactCard} from "./ContactCard"
 import {TaskCard} from "./TaskCard"
 import axios from "axios"
-import {ContactMenu} from "./ContactMenu";
-import {TaskMenu} from "./TaskMenu";
+import {ContactMenu} from "./ContactMenu"
+import {TaskMenu} from "./TaskMenu"
+import {ContactService} from '../services/ContactSevice'
+import {TaskService} from "../services/TaskService";
+import {RelationService} from "../services/RelationService";
 
-export class EntityTabs extends Component {
+interface EntityTabsProps{
+    props:{}
+}
 
-    constructor(props) {
-        super(props);
+interface EntityTabsState {
+    isLoading: boolean
+    tasks: Task[]
+    contacts: Contact[]
+    relations: Relation[]
+    showContactMenu: boolean
+    showTaskMenu: boolean
+}
+
+export type Task = {
+    id: number
+    title: string
+    description: string
+    isComplete: boolean
+}
+
+export type Contact = {
+    id: number
+    name: string
+    number: string
+}
+
+export type Relation = {
+    taskId: number
+    contactId: number
+}
+
+export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
+
+    constructor(props:EntityTabsProps) {
+        super(props)
 
         this.state = {
             isLoading: true,
-            tasks: null,
-            contacts: null,
-            relations: null,
+            tasks: [],
+            contacts: [],
+            relations: [],
             showContactMenu: false,
             showTaskMenu: false
         }
@@ -32,9 +66,6 @@ export class EntityTabs extends Component {
     handleShowTaskMenu = () => {
         this.setState({showTaskMenu: true})
     }
-
-    //url = process.env.SERVER_URL
-    url = "http://localhost:9000"
 
     render() {
         return (
@@ -53,7 +84,7 @@ export class EntityTabs extends Component {
                                             <div className="flex-cards">
                                                 <Button
                                                     style={{margin: "10px"}}
-                                                    onClick={e => this.handleShowTaskMenu()}
+                                                    onClick={() => this.handleShowTaskMenu()}
                                                 > Add<br/>new </Button>
                                                 {this.state.tasks.filter(t => !t.isComplete).map(t => (
                                                     <TaskCard
@@ -111,7 +142,6 @@ export class EntityTabs extends Component {
                                         contact={c}
                                         onDelete={this.deleteContact}
                                         onUpdate={this.updateContact}
-                                        onCreate={this.createContact}
                                     />
                                 ))}
                             </div>
@@ -147,44 +177,39 @@ export class EntityTabs extends Component {
     async componentDidMount() {
         this.setState({...this.state, isLoading: true})
 
-        await axios.get(`${this.url}/tasks`)
-            .then(response =>
+        await new TaskService().getAll().then(response =>
                 this.setState({
                     tasks: response.data.tasks
-                }))
-            .catch(e => console.log(e))
+                })
+        )
 
-        await axios.get(`${this.url}/contacts`)
-            .then(response =>
+        await new ContactService().getAll().then(response =>
                 this.setState({
                     contacts: response.data.contacts
-                }))
-            .catch(e => console.log(e))
+                })
+        )
 
-        await axios.get(`${this.url}/relations`)
-            .then(response =>
+        await new RelationService().getAll().then(response =>
                 this.setState({
                     relations: response.data.relations
-                }))
-            .catch(e => console.log(e))
+                })
+        )
 
         this.setState({...this.state, isLoading: false})
     }
 
-    deleteContact = (id) => {
-        axios.delete(`${this.url}/contacts/${id}`)
-            .then(response => {
-                this.setState({
-                    ...this.state,
-                    contacts: this.state.contacts.filter(c => c.id !== id)
-                })
+    deleteContact = (id:number) => {
+        new ContactService().delete(`${id}`).then(()=>{
+            this.setState({
+                ...this.state,
+                contacts: this.state.contacts.filter(c => c.id !== id)
             })
-            .catch(e => console.log(e))
+        })
     }
 
-    updateContact = (contact) => {
-        axios.put(`${this.url}/contacts/${contact.id}`, contact)
-            .then(responce => {
+    updateContact = (contact: Contact) => {
+        new ContactService().update(contact)
+            .then(() => {
                 const i = this.state.contacts.findIndex(value => value.id === contact.id)
                 let newContacts = this.state.contacts
                 newContacts[i] = contact
@@ -194,35 +219,30 @@ export class EntityTabs extends Component {
                     contacts: newContacts
                 })
             })
-            .catch(e => console.log(e))
     }
 
-    createContact = (contact) => {
-        axios.post(`${this.url}/contacts`, contact)
-            .then(response => {
+    createContact = (contact: Contact) => {
+        new ContactService().create(contact)
+            .then(() => {
                 let newContacts = this.state.contacts
                 newContacts.push(contact)
                 this.setState({
                     contacts: newContacts
                 })
             })
-            .catch(e => console.log(e))
     }
 
-    deleteTask = (id) => {
-        axios.delete(`${this.url}/tasks/${id}`)
-            .then(response => {
+    deleteTask = (id: number) => {
+        new TaskService().delete(`${id}`).then(() => {
                 this.setState({
                     ...this.state,
                     tasks: this.state.tasks.filter(t => t.id !== id)
                 })
             })
-            .catch(e => console.log(e))
     }
 
-    updateTask = (task) => {
-        axios.put(`${this.url}/tasks/${task.id}`, task)
-            .then(responce => {
+    updateTask = (task: Task) => {
+        new TaskService().update(task).then(() => {
                 const i = this.state.tasks.findIndex(value => value.id === task.id)
                 let newTasks = this.state.tasks
                 newTasks[i] = task
@@ -231,10 +251,9 @@ export class EntityTabs extends Component {
                     tasks: newTasks
                 })
             })
-            .catch(e => console.log(e))
     }
 
-    completeTask = (task) => {
+    completeTask = (task: Task) => {
         this.updateTask({
             id: task.id,
             title: task.title,
@@ -243,15 +262,13 @@ export class EntityTabs extends Component {
         })
     }
 
-    createTask = (task) => {
-        axios.post(`${this.url}/tasks`, task)
-            .then(response => {
+    createTask = (task: Task) => {
+        new TaskService().create(task).then(response => {
                 let newTasks = this.state.tasks
                 newTasks.push(task)
                 this.setState({
                     tasks: newTasks
                 })
             })
-            .catch(e => console.log(e))
     }
 }

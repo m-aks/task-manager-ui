@@ -1,8 +1,14 @@
 import React, {useState} from 'react'
 import {Button, Card, ButtonGroup, Form} from 'react-bootstrap'
 import {ContactMenu} from './ContactMenu'
+import {Contact} from "./EntityTabs";
 
-export const ContactCard = ({contact, onDelete, onUpdate}:any) => {
+interface ContactCardProps {
+    contact: Contact
+    onDelete: (_: number) => void
+    onUpdate: (_: Contact) => void
+}
+export const ContactCard = ({contact, onDelete, onUpdate}:ContactCardProps) => {
 
     const [show, setShow] = useState(false)
 

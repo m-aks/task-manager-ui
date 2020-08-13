@@ -1,47 +1,49 @@
-import React, {useState} from "react";
-import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap";
-import axios from "axios";
+import React, {useState} from "react"
+import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap"
+import {Contact, Task, Relation} from "./EntityTabs"
+import {RelationService} from "../services/RelationService"
 
-export const TaskMenu = ({task, contacts,relations,onClose, onSave, isOpen}:any) => {
+interface TaskMenuProps{
+    task:Task
+    contacts:Contact[]
+    relations:Relation[]
+    onClose: () => void
+    onSave: (_:Task) => void
+    isOpen: boolean
+}
+
+export const TaskMenu = ({task, contacts,relations,onClose, onSave, isOpen}:TaskMenuProps) => {
 
     const [title, setTitle] = useState(task.title)
     const [desc, setDesc] = useState(task.description)
     const [relation, setRelation] = useState(relations)
 
-    function inRelation(contactId){
+    function inRelation(contactId: number){
         let result = false
-        relations.forEach(r=>{
+        relation.forEach(r=>{
             if(r.contactId===contactId)
                 result=true
         })
         return result
     }
 
-    const url = "http://localhost:9000"
-    //const url = process.env.SERVER_URL
-
-    async function deleteRelation(contactId){
-        axios.delete(`${url}/relations/${task.id}/${contactId}`)
+    async function deleteRelation(contactId: number){
+        await new RelationService().delete(`${task.id}/${contactId}`)
             .then(responce=>{
-                let newRelations = relation
-                newRelations.filter(r => r.contactId !== contactId)
-                setRelation(newRelations)
+                setRelation(relation.filter(r => r.contactId !== contactId && r.taskId !== task.id))
             })
-            .catch(e=>console.log(e))
     }
 
-    async function createRelation(contactId){
-        await axios.post(`${url}/relations`,
-            {taskId:task.id,contactId:contactId})
+    async function createRelation(contactId: number){
+        await new RelationService().create({taskId:task.id,contactId:contactId})
             .then(responce=>{
-                let newRelations = relation
-                newRelations.push({
-                    taskId: task.id,
-                    contactId: contactId
-                })
-                setRelation(newRelations)
+            let newRelations = relation
+            newRelations.push({
+                taskId: task.id,
+                contactId: contactId
             })
-            .catch(e=>console.log(e))
+            setRelation(newRelations)
+        })
     }
 
     return (

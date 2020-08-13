@@ -1,7 +1,15 @@
-import React, {Component, useState} from "react";
+import React, {useState} from "react";
 import {Button, Form, Modal} from "react-bootstrap";
+import {Contact} from "./EntityTabs";
 
-export const ContactMenu = ({contact, onClose, onSave, isOpen}:any) => {
+interface ContactMenuProps{
+    contact:Contact
+    onClose: () => void
+    onSave: (_:Contact) => void
+    isOpen: boolean
+}
+
+export const ContactMenu = ({contact, onClose, onSave, isOpen}:ContactMenuProps) => {
 
     const [name, setName] = useState(contact.name)
     const [number, setNumber] = useState(contact.number)
@@ -39,10 +47,10 @@ export const ContactMenu = ({contact, onClose, onSave, isOpen}:any) => {
                     variant="primary"
                     onClick={
                         () => {onSave({
-                                id: contact.id,
-                                name: name,
-                                number: number
-                            })
+                            id: contact.id,
+                            name: name,
+                            number: number
+                        })
                         }
                     }
                 >Save</Button>

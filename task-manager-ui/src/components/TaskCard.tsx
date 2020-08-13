@@ -1,9 +1,18 @@
-import React, {Component, useState} from 'react'
-import {Card, Button, Modal, ButtonGroup, Form, Row, Col, Container, Spinner} from 'react-bootstrap'
-import axios from "axios";
-import {TaskMenu} from "./TaskMenu";
+import React, {useState} from 'react'
+import {Card, Button, Modal, ButtonGroup} from 'react-bootstrap'
+import {TaskMenu} from "./TaskMenu"
+import {Contact, Relation, Task} from "./EntityTabs"
 
-export const TaskCard = ({task, contacts, relations, onDelete, onUpdate, onComplete}:any) => {
+interface TaskCardProps {
+    task: Task
+    contacts: Contact[]
+    relations: Relation[]
+    onDelete: (_: number) => void
+    onUpdate: (_: Task) => void
+    onComplete: (_: Task) => void
+}
+
+export const TaskCard = ({task, contacts, relations, onDelete, onUpdate, onComplete}:TaskCardProps) => {
 
     const [show, setShow] = useState(false)
 
