@@ -4,5 +4,5 @@ import {EntityTabs} from "../components/EntityTabs"
 import axios from "axios";
 
 export const Home =() => {
-        return (<EntityTabs props = {{}}/>)
+        return (<EntityTabs/>)
 }

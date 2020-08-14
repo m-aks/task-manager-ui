@@ -2,16 +2,11 @@ import React, {Component} from 'react'
 import {Tabs, Tab, Accordion, Spinner, Card, Button} from 'react-bootstrap'
 import {ContactCard} from "./ContactCard"
 import {TaskCard} from "./TaskCard"
-import axios from "axios"
 import {ContactMenu} from "./ContactMenu"
 import {TaskMenu} from "./TaskMenu"
 import {ContactService} from '../services/ContactSevice'
 import {TaskService} from "../services/TaskService";
 import {RelationService} from "../services/RelationService";
-
-interface EntityTabsProps{
-    props:{}
-}
 
 interface EntityTabsState {
     isLoading: boolean
@@ -40,20 +35,20 @@ export type Relation = {
     contactId: number
 }
 
-export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
+export class EntityTabs extends Component<{},EntityTabsState> {
 
-    constructor(props:EntityTabsProps) {
-        super(props)
-
-        this.state = {
-            isLoading: true,
-            tasks: [],
-            contacts: [],
-            relations: [],
-            showContactMenu: false,
-            showTaskMenu: false
-        }
+    state = {
+        isLoading: true,
+        tasks: [],
+        contacts: [],
+        relations: [],
+        showContactMenu: false,
+        showTaskMenu: false
     }
+
+    taskService = new TaskService()
+    contactService = new ContactService()
+    relationService = new RelationService()
 
     handleClose = () => {
         this.setState({showContactMenu: false, showTaskMenu:false})
@@ -177,19 +172,19 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     async componentDidMount() {
         this.setState({...this.state, isLoading: true})
 
-        await new TaskService().getAll().then(response =>
+        await this.taskService.getAll().then(response =>
                 this.setState({
                     tasks: response.data.tasks
                 })
         )
 
-        await new ContactService().getAll().then(response =>
+        await this.contactService.getAll().then(response =>
                 this.setState({
                     contacts: response.data.contacts
                 })
         )
 
-        await new RelationService().getAll().then(response =>
+        await this.relationService.getAll().then(response =>
                 this.setState({
                     relations: response.data.relations
                 })
@@ -199,7 +194,7 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     deleteContact = (id:number) => {
-        new ContactService().delete(`${id}`).then(()=>{
+        this.contactService.delete(`${id}`).then(()=>{
             this.setState({
                 ...this.state,
                 contacts: this.state.contacts.filter(c => c.id !== id)
@@ -208,7 +203,7 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     updateContact = (contact: Contact) => {
-        new ContactService().update(contact)
+        this.contactService.update(contact)
             .then(() => {
                 const i = this.state.contacts.findIndex(value => value.id === contact.id)
                 let newContacts = this.state.contacts
@@ -222,7 +217,7 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     createContact = (contact: Contact) => {
-        new ContactService().create(contact)
+        this.contactService.create(contact)
             .then(() => {
                 let newContacts = this.state.contacts
                 newContacts.push(contact)
@@ -233,7 +228,7 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     deleteTask = (id: number) => {
-        new TaskService().delete(`${id}`).then(() => {
+        this.taskService.delete(`${id}`).then(() => {
                 this.setState({
                     ...this.state,
                     tasks: this.state.tasks.filter(t => t.id !== id)
@@ -242,7 +237,7 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     updateTask = (task: Task) => {
-        new TaskService().update(task).then(() => {
+        this.taskService.update(task).then(() => {
                 const i = this.state.tasks.findIndex(value => value.id === task.id)
                 let newTasks = this.state.tasks
                 newTasks[i] = task
@@ -263,11 +258,9 @@ export class EntityTabs extends Component<EntityTabsProps,EntityTabsState> {
     }
 
     createTask = (task: Task) => {
-        new TaskService().create(task).then(response => {
-                let newTasks = this.state.tasks
-                newTasks.push(task)
+        this.taskService.create(task).then(response => {
                 this.setState({
-                    tasks: newTasks
+                    tasks: [...this.state.tasks, task]
                 })
             })
     }

@@ -18,7 +18,9 @@ export const TaskMenu = ({task, contacts,relations,onClose, onSave, isOpen}:Task
     const [desc, setDesc] = useState(task.description)
     const [relation, setRelation] = useState(relations)
 
-    function inRelation(contactId: number){
+    const relationSevice = new RelationService()
+
+    const inRelation = (contactId: number) => {
         let result = false
         relation.forEach(r=>{
             if(r.contactId===contactId)
@@ -28,14 +30,14 @@ export const TaskMenu = ({task, contacts,relations,onClose, onSave, isOpen}:Task
     }
 
     async function deleteRelation(contactId: number){
-        await new RelationService().delete(`${task.id}/${contactId}`)
+        await relationSevice.delete(`${task.id}/${contactId}`)
             .then(responce=>{
                 setRelation(relation.filter(r => r.contactId !== contactId && r.taskId !== task.id))
             })
     }
 
     async function createRelation(contactId: number){
-        await new RelationService().create({taskId:task.id,contactId:contactId})
+        await relationSevice.create({taskId:task.id,contactId:contactId})
             .then(responce=>{
             let newRelations = relation
             newRelations.push({
